@@ -110,12 +110,14 @@ def main(args):
         config.gconfig.stop_token_ids.append(tokenizer.pad_token_id)
     if tokenizer.eos_token_id not in config.gconfig.stop_token_ids:
         config.gconfig.stop_token_ids.append(tokenizer.eos_token_id)
+
+
     workflow = MultiTurnMCPWorkflow(
         reward_fn=gsm8k_reward_fn,
         gconfig=config.gconfig,
         tokenizer=tokenizer,
         turn_discount=1,
-        max_turns=6,
+        max_turns=5,
         enable_thinking=False,
         dump_dir=os.path.join(
             StatsLogger.get_log_path(config.stats_logger), "generated"

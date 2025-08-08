@@ -16,7 +16,7 @@ async_training: true
 rollout:
   experiment_name: ${experiment_name}
   trial_name: ${trial_name}
-  max_concurrent_rollouts: 4
+  max_concurrent_rollouts: 64
   queue_size: null
   consumer_batch_size: ${train_dataset.batch_size}
   max_head_offpolicyness: 4
@@ -28,7 +28,7 @@ gconfig:
   max_new_tokens: 1024
   greedy: false
   temperature: 1.0
-  stop: ["<|im_end|>\n"]
+#  stop: ["<|im_end|>\n"]
 
 actor:
   experiment_name: ${experiment_name}
@@ -39,7 +39,7 @@ actor:
   gradient_checkpointing: true
   dtype: bfloat16
   mb_spec:
-    max_tokens_per_mb: 6144
+    max_tokens_per_mb: 24576
   optimizer:
     type: adam
     lr: 1e-5
@@ -72,7 +72,7 @@ ref:
   disable_dropout: true
   dtype: ${actor.dtype}
   mb_spec:
-    max_tokens_per_mb: 6144
+    max_tokens_per_mb: 8192
   optimizer: null
   backend: fsdp
 
@@ -89,7 +89,7 @@ sglang:
 
 # datasets
 train_dataset:
-  batch_size: 4
+  batch_size: 256
   shuffle: true
   pin_memory: true
   num_workers: 4

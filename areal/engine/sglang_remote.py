@@ -130,6 +130,8 @@ class RemoteSGLangEngine(InferenceEngine):
             "max_new_tokens": gconfig.max_new_tokens,
             "temperature": 0.0 if gconfig.greedy else gconfig.temperature,
             "stop_token_ids": stop_token_ids,
+            # "skip_special_tokens": False,  # 保留特殊token
+            # "ignore_eos": True,  # 忽略默认的EOS停止（如果支持）
         }
         if stop is not None:
             sample_params["stop"] = stop

@@ -7,11 +7,36 @@ from openai import AsyncOpenAI
 from tenacity import stop_after_attempt, wait_exponential, retry
 
 
+# def parse_tool_calls(text: str):
+#     """Parse tool calls from text and convert to OpenAI format, return both content and tool_calls"""
+#
+#     # 方法1: 修改正则表达式，包含前面的换行符
+#     tool_regex = re.compile(r"\n<tool_call>(.*?)</tool_call>", re.DOTALL)
+#     matches = tool_regex.findall(text)
+#
+#     tool_calls = []
+#     for i, match in enumerate(matches):
+#         try:
+#             tool_data = json.loads(match.strip())
+#             tool_calls.append({
+#                 "id": f"call_{uuid.uuid4().hex[:24]}",
+#                 "type": "function",
+#                 "function": {
+#                     "name": tool_data.get("name", ""),
+#                     "arguments": json.dumps(tool_data.get("arguments", {}),ensure_ascii=False)
+#                 }
+#             })
+#         except Exception as e:
+#             print(e)
+#             continue
+#
+#     # Remove tool call tokens from text to get remaining content
+#     content = tool_regex.sub("", text).strip()
+#
+#     return content, tool_calls
 def parse_tool_calls(text: str):
-    """Parse tool calls from text and convert to OpenAI format, return both content and tool_calls"""
-
-    # 方法1: 修改正则表达式，包含前面的换行符
-    tool_regex = re.compile(r"\n<tool_call>(.*?)</tool_call>", re.DOTALL)
+    """Parse tool calls from text and convert to OpenAI format"""
+    tool_regex = re.compile(r"<tool_call>(.*?)</tool_call>", re.DOTALL)
     matches = tool_regex.findall(text)
 
     tool_calls = []
@@ -23,18 +48,14 @@ def parse_tool_calls(text: str):
                 "type": "function",
                 "function": {
                     "name": tool_data.get("name", ""),
-                    "arguments": tool_data.get("arguments", {}),
+                    "arguments": json.dumps(tool_data.get("arguments", {}),ensure_ascii=False)
                 }
             })
         except Exception as e:
             print(e)
             continue
 
-    # Remove tool call tokens from text to get remaining content
-    content = tool_regex.sub("", text).strip()
-
-    return content, tool_calls
-
+    return tool_calls
 
 def _check_task_done( tool_calls):
     """Check if task_done is in tool calls"""
@@ -119,3 +140,30 @@ async def reward_fn(prompt, messages):
 
     return 0.0
 
+
+
+
+def find_diff(s1, s2, ctx=50):
+    """找出两个字符串差异并显示前后50字符"""
+    for i in range(min(len(s1), len(s2))):
+        if s1[i] != s2[i]:
+            start = max(0, i - ctx)
+            end = min(len(s1), i + ctx)
+            print(f"\n位置 {i} 不同:")
+            print(f"S1[{start}:{end}]: {repr(s1[start:end])}")
+            print(" " * (i - start + 11) + "^")
+            print(f"S2[{start}:{end}]: {repr(s2[start:min(len(s2), end)])}")
+            print(f"\n差异: '{s1[i]}'({ord(s1[i])}) != '{s2[i]}'({ord(s2[i])})")
+            return i
+
+    if len(s1) != len(s2):
+        print(f"\n长度不同: {len(s1)} != {len(s2)}")
+        i = min(len(s1), len(s2))
+        if len(s1) > len(s2):
+            print(f"S1多出: {repr(s1[i:i + 100])}")
+        else:
+            print(f"S2多出: {repr(s2[i:i + 100])}")
+        return i
+
+    print("两字符串相同")
+    return -1
